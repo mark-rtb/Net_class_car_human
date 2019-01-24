@@ -83,16 +83,16 @@ def train_gen_and_fit(train_dir, val_dir, test_dir, img_width, img_height,
         batch_size=batch_size,
         class_mode='binary')
     
-    model.fit_generator(
+    history = model.fit_generator(
     train_generator,
     steps_per_epoch=nb_train_samples // batch_size,
-    epochs=10,
+    epochs=3,
     validation_data=val_generator,
     validation_steps=nb_validation_samples // batch_size)
     
     scores = model.evaluate_generator(test_generator, nb_test_samples // batch_size)
     print("Точность на тестовых данных: %.2f%%" % (scores[1]*100))
-    return model
+    return model, history
 
 
 def save_model(model):
@@ -105,7 +105,7 @@ def save_model(model):
     json_file.close()
     model.save_weights("bin_class_net.h5")
 
-def vis_train(model):
+def vis_train(history):
     """ Функция визуализации процесса обучения, помогает понять качество
     обученной модели.
     На вход принимает обученную модель.
@@ -114,7 +114,7 @@ def vis_train(model):
     
     plt.subplot(211)
     plt.title('Accuracy')
-    plt.plot(model.history['accuracy'], color = 'r', label = 'Train')
+    plt.plot(history.history['accuracy'], color = 'r', label = 'Train')
     plt.show()
     
 
@@ -134,7 +134,7 @@ def handler(dir_name = 'C:\\Users\\марк\\Documents\\classification_net'):
     # Размеры изображения
     img_width, img_height = 150, 150
     # Размер мини-выборки
-    batch_size = 10
+    batch_size = 5
     # Количество изображений для обучения
     nb_train_samples = 200
     # Количество изображений для проверки
@@ -145,11 +145,11 @@ def handler(dir_name = 'C:\\Users\\марк\\Documents\\classification_net'):
     name_model = VGG16
     pre_train_net = load_pre_trained_model(name_model, img_width, img_height)
     model = additional_net(pre_train_net)
-    model = train_gen_and_fit(train_dir, val_dir, test_dir, img_width, 
+    model, history = train_gen_and_fit(train_dir, val_dir, test_dir, img_width, 
                               img_height, batch_size, model, nb_train_samples,
                               nb_validation_samples, nb_test_samples)
     save_model(model)
-    vis_train(model)
+    vis_train(history)
 
 
 def main():
